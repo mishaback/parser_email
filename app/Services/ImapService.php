@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Webklex\IMAP\Facades\Client;
+use Ddeboer\Imap\Server;
+use Ddeboer\Imap\Search\Date\Since;
 
 class ImapService
 {
@@ -10,26 +11,27 @@ class ImapService
 
     public function dataImap()
     {
-        $client = Client::account('default');
-        $client->connect();
-        $folder = $client->getFolderByPath('INBOX');
-        $messages = $folder->query()->setFetchBody(false)->all()->get();
-        $messages =
-            foreach ($messages as $message) {
-                $header = $message->getHeader();
-                if ($message->getSubject() == 'New Message') {
-                    $bodyMessage =  str_replace('&nbsp;',' ', strip_tags($message->getHTMLBody()));
+        $server = new Server(env('IMAP_HOST'));
+        $connection = $server->authenticate(env('IMAP_USERNAME'), env('IMAP_PASSWORD'));
+        $mailbox = $connection->getMailbox('INBOX');
+        $messages = $messages = $mailbox->getMessages(
+            null, \ SORTDATE,
+            true
+        );
 
-                    preg_match("/Message:(.*?)Date, time：(.*?)Name：(.*?)Title:(.*?)Mobile phone:(.*?)Fix Phone:(.*?)Email:(.*)/", $bodyMessage, $matches);
-                        dd($matches);
-                        $values['name'] = trim($matches [3]);
-                        $values['email'] = trim($matches [7]);
-                        $values['email'] = trim($matches [5]);
+        foreach ($messages as $message) {
+            if ($message->getSubject() == "New Message") {
+                $bodyMessage = str_replace('&nbsp;', '', strip_tags($message->getBodyHtml()));
+                preg_match("/Message:(.*?)Date, time：(.*?)Name：(.*?)Title:(.*?)Mobile phone:(.*?)Fix Phone:(.*?)Email:(.*)/", $bodyMessage, $matches);
+                $values['uid'] = $message->getId();
+                $values['name'] = trim($matches[3]);
+                $values['phone'] = trim($matches[5]);
+                $values['email'] = trim($matches[7]);
 
-                    yield $values;
-
-                }
+                yield $values;
             }
+        }
+
     }
 
 }

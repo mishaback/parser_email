@@ -135,8 +135,8 @@ return [
         'sequence' => \Webklex\PHPIMAP\IMAP::ST_MSGN,
         'fetch_body' => true,
         'fetch_flags' => true,
-        'message_key' => 'list',
-        'fetch_order' => 'asc',
+        'message_key' => 'uid',
+        'fetch_order' => 'desc',
         'dispositions' => ['attachment', 'inline'],
         'common_folders' => [
             "root" => "INBOX",
