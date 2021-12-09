@@ -3,18 +3,21 @@
 namespace App\Services;
 
 use Ddeboer\Imap\Server;
-use Ddeboer\Imap\Search\Date\Since;
 
 class ImapService
 {
-
-
-    public function dataImap()
+    private function connectToMailbox()
     {
         $server = new Server(env('IMAP_HOST'));
         $connection = $server->authenticate(env('IMAP_USERNAME'), env('IMAP_PASSWORD'));
         $mailbox = $connection->getMailbox('INBOX');
-        $messages = $messages = $mailbox->getMessages(
+
+        return $mailbox;
+    }
+
+    public function dataImap()
+    {
+        $messages = $messages = $this->connectToMailbox()->getMessages(
             null, \ SORTDATE,
             true
         );
@@ -31,7 +34,5 @@ class ImapService
                 yield $values;
             }
         }
-
     }
-
 }

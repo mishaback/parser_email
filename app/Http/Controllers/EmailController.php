@@ -9,33 +9,40 @@ use Illuminate\Http\Request;
 
 class EmailController extends Controller
 {
-    public $imap;
+    protected $imapService;
 
-    public function __construct(ImapService $imap)
+    public function __construct(ImapService $imapService)
     {
-
-        $this->imap = $imap;
+        $this->imapService = $imapService;
     }
 
     public function index()
     {
-        $lastUid = Email::first();
+        $lastSaveUid = Email::first();
+        $generator = $this->imapService->dataImap();
+        $EmailList = array();
+        foreach ($generator as $value) {
+            if ($generator->key() === 0) {
+                if ($lastSaveUid != null) {
+                    $firstUid = Email::first();
+                    $firstUid->uid = $value['uid'];
+                    $firstUid->update();
+                } else {
+                    $newEmail = new Email();
+                    $newEmail->uid = $value['uid'];
+                    $newEmail->save();
+                }
 
-        $generator = $this->imap->dataImap();
-        foreach ($generator as $key => $value) {
+                if ($lastSaveUid && $lastSaveUid->uid == $value['uid']) {
+                    break;
+                }
 
-            if ($lastUid && $lastUid == $value['uid']) {
-
-                $new = new Email();
-                $new->uid = $value['uid'];
-                $new->save();
-                break;
 
             }
+            $EmailList[$generator->key()] = $value;
 
 
         }
-
-
+        dd($EmailList);
     }
 }
