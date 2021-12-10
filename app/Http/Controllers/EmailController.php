@@ -36,8 +36,6 @@ class EmailController extends Controller
                 if ($lastSaveUid && $lastSaveUid->uid == $value['uid']) {
                     break;
                 }
-
-
             }
             $EmailList[$generator->key()] = $value;
 
